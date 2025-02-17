@@ -182,7 +182,7 @@ int main(int argc,char **argv){
 	printf("4.server started listening on port %d\n",PORT);
 	printf("5.Maximum number of students allowed at a time are %d\n\n",MAX_CLIENTS);
 	//printf("-----------------------------------------------------------\n");
-	printf("NIT CALICUT ONLINE DISCUSSION PLATFORM\n");
+	printf("VVIT ONLINE DISCUSSION PLATFORM\n");
 
 	//accept connections
 	while(1)
