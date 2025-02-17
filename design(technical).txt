@@ -1,0 +1,179 @@
+A)Technical Notepoints:
+
+   1)Whole basic idea of this chat system implementation is based on fact that if a client sent a msg to server then server can send that msg to all clients which are connected to it mentioning the source client name using clientlist[] datastructure storing all connected socket values.basic system design idea -driving force of making this project technically.
+
+   2)Came to know that if we debug socket related programs by printing all send,recv function calls buffers after execution,this technique worked powerful to me.
+
+   3)new things needed to understand inorder to use multithreading------>different command to compile,pthread library,mutex data type(pthread_mutex_t),initialisation macro,thread Id data type(pthread_t),creating threads (making a thread from a single fn with at most 1 argument,type casting arguments inside it),pthread_create(),pthread_join(),mutex_lock(),mutex_unlock() fn's,pthread_detach-pthread_self(in server code).
+
+   4)if multiple threads/processes have access to common data members,lock them whenever modifying that variable(no need to lock if only reading),carefully watch all common data members everywhere and lock all of them.otherwise undefined behaviour will happen and will lead to race conditions like working crctly in some runs and not working correctly in other runs or can even lead to deadlocks too sometimes.keep in mind that threads will run parallelly so one thread can execute first and another thread later etc,dont think this is undefined behaviour.search the common data,variables in editor and deal all of them must.
+
+   5)If threads only reading common data,then mutexes are required?(no)reading is not a problem-Read-Read is not a problem.only if involved modifying/write() common data then mutexes are required.
+
+   6)For different data items using different mutex variables is better so that we can reduce some time wastage.we can also use same mutex for every common data but it can consume some time and in some cases may lead to deadlock/starvation also.
+
+   7)Better to pass arguments to thread fn using pass by value,dont pass pointers,avoid thread to use the common memory again.or else copy that argument inside thread to other memory specific to that thread.if not done,we have to use mutexes again bcz thread is accessing data in parent process.(common data again which is an extra headache).
+
+   8)seperate thread for Every new client inside sever is required bcz server don't know when a particular client will send msg to it.so we have to put recv(sockfd);  for all clients continously in server and this is possible only with threads.all threads will correspondingly wait for every client to send the msg.(there might be other possibility also I don't know but I knew threads will make this mutiple listening possible).so at any time if cliets connected are x there will be (x+1) threads(one extra bcz server process is itself again a thread)
+
+   9)Might think no use of mutex in client code bcz of the fact that two threads have different memory.msg[] is there twice.and not working on common data.and sockfd variable only reading-no modifying.but I added aliveflag.which is a common data and can be modified so must use mutex for that alive flag.Aliveflag is imp bcz receiver should also stop automatically once sender is stopped.or sender should stop once receiver is stopped.
+
+   10)We might think that in client program two threads(sender and receiver) are not required but required bcz we don't know when we will receive msgs or when we will send msgs.so we must wait on one scanf()(send() later) and one recv() and for this having two threads for this is a must in client.we can also put these 2 sender & receiver threads in client program in ass3 1st q,but not necessary and waste of time bcz there in ass3 1st q we exactly know when we will receive msgs and when we have to send msgs.
+   
+   
+B)Libraries used
+
+   1)socket related syntaxes in C
+   
+      #include<sys/socket.h>
+      #include<sys/types.h>
+      general purpose fns for both client and server : send(sockid,buff,sizeof(buff),0);    recv(sockid,buff,sizeof(buff),0);     close(sockid);
+      
+      server specific fns:  
+      int ss=socket(AF_INET(ipv4),SOCK_STREAM(tcp),0);
+      fill ip address and port value in server address structure
+      listen(ss,5);
+      bind(ss,server address structure saddr,sizeof(saddr));
+      int sockid=accept(ss,null,null);
+   
+      client specific fns:
+      sockid=socket(AF_INET,SOCK_STREAM,0);
+      fill ip address and port value of server in server address structure(in client also server details only should be there)
+      int cn=connect(sockid,server address structure saddr,sizeof(addr));
+    
+   2)thread related
+   
+      #include<pthread.h>
+      pthread_mutex_t=MUTEX INITIALIZER MACRO;
+      pthread_mutex_lock(&m);
+      pthread_mutex_unlock(&m);
+      pthread_detach(pthread_self());
+   
+      pthread_t thvar;
+      Thread fn: void* fname(void* fn args)  (fn args=just variable names)
+      pthread_create(&thvar,null,&fnname,(void*) fn args)
+      pthread_join(thvar,0);
+      
+   
+C)Design of both server and client programs:
+   1)server code design:(Abstract of whole code here without syntaxes)
+   importing all libraries
+   struct client{ index,sockid,name }
+   global data items:2 mutexes(m1,m2),client[256]--array of pointers to client structures,array[256] of thread(pthread_t)
+   main(){   }
+   addclient(){    }
+   deleteclient(){   }
+   sendtoallclients(){   }
+   clientthread(){     }
+
+   main(){
+   create server socket,bind to ip and port,take max students at a time
+   go to listen state
+   while(){
+   accept connection from client
+   here verifying password feature(commented it-refer code if want)
+   if limit is crossed,send limitreached msg to client,decrement count
+   print one student attempted msg and using sendtoall() send to all current clients this same msg
+   else receive name of client,take sockid and assign some index and add this triplet into database(client[256]) using addclient() fn
+   create a new thread to handle this specific client of clientthread fn(pass client structure as argument),store this thread id in thread[] array
+   new thread will take care of this specific cleint,server process loops and waits to accept further connections
+   }
+   //no joining of threads here,bcz server process will not stop,can be stopped using ctrl+c only.not a smooth thing to do
+   }
+
+   addclient(){
+   takes pointer to structure of new client(index,sockid,name) as argument
+   traverse database(client[256]-array of pointers to client structure)
+   if any pointer is null,assign to it 
+   if all pointers are filled,didnot handle this case
+   }
+
+   deleteclient(){
+   takes index value of client to be deleted as argument(this index value is not index in client[] database,index assigned to this client after accepting        connection)
+   traverse database and see which client has above index value and make it point to null
+   }
+
+   sendtoallclients(){
+   takes msg and index of client(k) as arguments
+   sends to all clients in database using sockid values inside structure array,except for client with index k
+   bcz client with index k only put msg to all other clients
+   }
+
+   clientthread(){
+   takes specific client structure as argument,handles only this specific client
+   if he is the only client connected currently(detect using client_count value),print no members currently
+   else send current members list to only this client using names of clients present in client database
+   print that this client joined the discussion,and send this msg to all clients using sendtoall fn except for this client
+   while(){
+   wait on recv() fn only for this client
+   if received exit msg,delete this client from database(client[]),decrement client_count,send msg of this client leaving to all other clients and print in      server too,close the connection socket specific to this client,break loop,kill this thread
+   else take this client name and received msg and sentoall() and print in server too,continue the loop,again wait on recv() fn
+   }
+   }
+
+   2)client code design:(Abstract of whole client code here without syntaxes)
+   importing all libraries
+   global data items: aliveflag,sockfd variable,one mutex-why this mutex-refer notepoints below
+   void sender thread(){    }
+   void receiver thread(){   }
+   void main(){     }
+   main(){
+   create socket,no binding here(bcz client process)
+   connect to server ip and server port number using connect()
+   take client name and send name to server
+   create sender thread of sender fn and receiver thread of receiver fn
+   join 2 threads so that process will not terminate until both threads terminates(are 2 threads necessary?yes-refer notepoints below)
+   }
+
+   sender(){
+   while(aliveflag){
+   will wait on scanf
+   if eneterd anything will send to server
+   if entered exit,make aliveflag=0 and close connection
+   }
+   }
+
+   receiver(){
+   while(aliveflag){
+   if(recv()>0){ //will wait on recv() from server
+   if msg received is limitreached,make aliveflag=0,close connection,print limit reached and server rejected msg
+   else print directly that msg received on screen
+   }
+   }
+   }
+
+
+D)Feature updates thought/some small bugs i detected while using chat system:
+
+   1)till now runned both programs in same host and same OS too at a time and it worked,if runned server in one machine(say ubuntu inside virtualbox) and client in another machine(say wsl ubuntu in same host but here diff OS in same host) connection failed msg is coming in client.dont even know what will happen if both are run in diff host completely,definitely the client and server will not connect.dont know how to make every case working,may be related to ip addresses port numbers and internet connection but no clarity at all.(may be a small thing that i dont know here)
+
+   2)Update of putting a password for server is actually present inside server and client codes but commented i.e., client must enter server password to enter the communication(this update works crctly if we uncomment)
+
+   3)Handling multiple clients at a time is possible but accepting(connecting) multiple clients at a time is not possible,bcz if a client sends a connection request while server is in process of creating thread for already connected client,connection will fail,will have to try again after some time-one limitation in my chat system(but thus can be ignored bcz server takes just micro seconds to create thread)
+
+   4)For the client who entered after maxlimit is reached,the client program will run another iteration of sender thread bcz already it entered into iteration even though aliveflag now became zero.so sender thread will perform one extra iteration-not a big problem.i dont know how to fix this.neglected it bcz a very small problem.
+
+   5)Better to take client name as input if limits reached, and use that client name and pass it to all clients+server so that all clients will know exactly who is trying to connect-very small inconvenience to users(so left) or avoid taking client name before checking limit reached.
+
+   6)If max_clients are 3 and first,second,third connected and first one exited the chat.if a new client is connected (fourth) then it is showing current members as only second,third name is not displaying for fourth connected client.
+    a)any msgs from this 4th client is not going to third client. And any msg from third client is not going to 4th client.remaining everything is fine.(far fetched bug).something to do with clientlist[] array here.
+    Simply if one client attempted to join and rejected by server(due to limit) and one member exited and now new member joined from now on not working properly.something error with clientlist[] database here.
+    Solution:assigning index to client before adding it to database is not good and further bad thing is assigning current client count as index to new client is very bad,so assign index to client only after adding it to database(that index in database itself) i.e., assign index value to client not according to client_count at that time but according to its index in client[] array after adding to database.Then whole bug will be corrected.Didnot code this bcz if we change the code now then there is a chance that i have to check whole code again wheter i am affecting any other things or not.so not to waste time i didnot code this simple thing also.if this is updated crctly then complexity of deleteclient() will be reduced to O(1) bcz we can directky access index in database(client[]).
+
+   7)it is better if we provide a functionality,to send the msg only to the required single client(one-one private communication) and not to the whole group.implementing this is not difficult,but takes time.
+
+   8)Some Functionality like displaying all current user names when typed one fixed word as a msg in server.for this we can create a thread and make it wait on scanf in server and write code for displaying all users(not required leave it bcz we already displayed who joined and who left the chat).
+
+   9)Functionality which changes the MAX_CLIENTS value inside server.(not required actually).for this to implement create a thread in server that will wait on scanf() and write a fn to chnage maxclients value(even though maxclients value is common,thre is no other thread modifying it,so no need ofn synchronisation here)
+
+
+E)Small Doubts remained:
+
+   1)Replace all sprintf() statements with some other like strcpy etc bcz using sprintf() in linux OS is giving warnings may be dangerous to use that function in production related work.dont know.can we use this to make strings from integers instead of itoa() which is not available in linux platform?
+
+   2)Actually server process cannot be stopped without using ctrl+c in my program.how to avoid this and make stopping normal? And *Stopping any client process using ctrl+c is leading to infinite loop in server program.how to fix this?
+
+   3)If i try to remove all warnings(like changing warning lines appropriately) in server program compilation then when running again so much of undefined behaviour is happening.so don't remove warnings simply.Know the exact reason of warnings and handle them carefully dont simply change according to instrs in warnings.and run and confirm continously.if we compile server program we will get so many warnings but no errors in linux platform.
+
+   4)What if we close the socketfd using close(sockfd) created in client using 2 threads?
+

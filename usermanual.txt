@@ -1,0 +1,10 @@
+
+Simple UserManual to use above chat system:
+1)Read entire report once,all functinalities facilitated by this application are showed atleast once in screenshots inside report pdf
+2)commands to execute the programs:
+server: "gcc -pthread server.c" && "./a.out <portnumber>"  (portnumber can be port number in valid range which is not used curently by that OS)
+client: "gcc -pthread client.c" && "./a.out <portnumber>"  (portnumber should be same as portnumber of server which is listening on it and should be in valid range) 
+3)-pthread tag in command is required bcz we are using pthread library fns inside code.if no pthread related functions are used in the program then no need of this extra -pthread tag while compiling.
+4)Both programs will give many warnings after compilation on one problem of using sprintf() fn inside code,ignore all warnings,only if there is an error then something is wrong.
+5)can run both programs simultaneously in linux based systems(or even ubuntu wsl-both client and server in same wsl) if used correct commands as mentioned above,but might not work in windows based operating systems.
+6)run both programs simultaneously in same host and same OS too--no need of any internet connection in this scenario-(otherwise both client and server cannot connect)

@@ -1,0 +1,56 @@
+Complete project context:(readme file + report pdf + usermanual.txt + server.c + client.c + Non-technical.txt + design(technical).txt)
+
+A)Non-technical Notepoints:
+
+  1)Refer design.txt for all imp technical details abt chat system implementation, like whole abstract of both client and server programs and so much info about code working and my experience while implementing both codes etc
+
+  2)Here we shall only see non-technical details
+
+  3)Reason for choosing this project is it is a lab project(assignment) and I really enjoyed the process of doing this project a lot luckily.
+
+  4)This functionality resembles whatsaap/telegram group functionality with some limited features ofcourse.whatsaap also in initial stages has limited features and bcz of the intellectual software engineers managing it and updating it/adding new features continously made it look more advanced now.
+
+  5)Made use of socket fns library,they have inbuilt codes for creating packets,transmitting them etc according to tcp/udp protocols.for example connect() fn internally uses 3-way handshake of TCP exactly and similarly socket(),close() system calls uses theoritical points in CN appropriately.so even though didnot write code from scratch from creating packets i am able to complete this project with the use of socket lib fns.
+
+  6)Handling multiple clients is achieved using seperate threads for every client and mutexes to synchronise them
+
+  7)To use this product server should be up and running continously and all students should be provided client programs and they can connect whenever they want
+
+  8)Honestly speaking i didnot write the code from scratch.Used snr submission programs and customised it a lot in my style and understood every line of code,every line purpose in very detailed manner.
+
+
+B)Problems faced and how i overcame them:
+
+  1)Learning pthread library and it's usage along with socket library,not a big task,but consumed some time.
+  
+  2)Struggled initially to get the basic design of whole code like where to create threads and all but after spending some time and updating it continously the design made into some shape.
+  
+  3)While updating the code i verified everytime whether it disturbed any already built in features or not.so rigorous manual testing is done by me on own.
+
+
+C)Multithreading:
+
+  1)After completing this project i came to know abt how important multithreading is in any field and basic applications of creating threads and learnt how powerful multithreading is in real life applications and get to know that i am unknowingly using threads almost all the time in smart phone/laptops almost everywhere.
+
+  2)Threads are lightweight processes and shares their code section, data section and OS resources like open files and signals with other threads But a thread has its own program counter (PC), a register set, and a stack space.
+
+  3)Reduces so much wastage of cpu time:we can say that creating thread is 30 times faster than creating thread and context switch of thread is 5 times faster than context switch of process.
+
+  4)Silent features of multithreading:
+
+    a)Increases Responsiveness of a application:
+      1)suppose a process is doing some work and simultaneously it has to detect key strokes by user,without multithreading only option is creating another process using fork() but it will affect performance and heavy weighted,so a seperate thread can be created specifically to detect key strokes and to invoke required response as per key stroke.
+      2)before clicking right click a seperate thread in OS is waiting to click and it will do the required thing after clicking.we can say OS handles users with heavy use of multi threading inbuilt in it.
+
+    b)Resource sharing:
+      In most of the cases,we work on common data which is processed by multiple threads.in that case we can put threads instead of process which reduces cpu consumption.
+      In gaming almost every functionality should work on same memory space,so without multithreading heavy gaming applications would have never built even if built they require very powerful CPUs to run game smoothly bcz there should be seperate processes for every functionality.
+
+    c)Increasing parallelism in cpu cores:A process(single threaded) can be run only in one processor even though many processors are available and even if  multiprogramming is used.so if we have multiple threads in a single process,we can assign threads to diff processors thereby increasing efficiency of cpus in multi-processor environment.(refer merge sort using multithreading gfg article).
+    Example:If there are 2 processors in CPU,we can make Mergesort() algorithm run in O(n) complexity itself instead of O(nlogn) complexity with same extra space but utilising 2 processors this time instead of one processor.
+    in ms() fn create 2 seperate threads for 2 recursive calls of ms(half),ms(half) and call merge() only if 2 threads completed their execution by using pthread.join() fn.Might think we need mutexes here to synchronise threads but it turned out that we dont need bcz even though 2 threads act on same array,they are acting on 2 independent different halfs of array,there is no element common b/w 2 threads.so no need of synchronisation here in this case.
+    Now T(n)=T(n/2)+k.n instead of T(n)=2*T(n/2)+k.n
+    Overall Time complexity:O(n) itself by Masters Theorom.
+    If there are more than 2 processors we can make use of all processors not only 2 processes(but coding it and getting idea where to create threads is complicated and can be done by after gaining some experience.
+    
+    
