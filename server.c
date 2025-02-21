@@ -189,26 +189,7 @@ int main(int argc,char **argv){
 	{
 		int socketID = accept(server_socket, NULL, NULL);
 		//we put NULL bcz we dont want clients ip address,port number et bcz we are receiving name of the client.
-			/*
-           //code added for password update start here
-		char pass[30];
-		recv(socketID,pass,sizeof(pass),0);
-		//printf("received password:%s\n",pass);
-		if(strcmp(pass,"1111")!=0){
-		printf("One client entered wrong password,so rejected\n");
-		bzero(pass,30);
-		strcpy(pass,"denied");
-		send(socketID,pass,sizeof(pass),0);
-		//printf("sent %s\n",pass);
-		close(socketID);
-		continue;
-		}
-		bzero(pass,30);
-		strcpy(pass,"accepted");
-		send(socketID,pass,sizeof(pass),0);
-		//printf("sent %s\n",pass);
-          //code added for password update ended(scroll for 2 more lines of code for password update below)
-*/
+
 		pthread_mutex_lock(&mutex2);
 		client_count++;
 		//printf("client_count incremented to %d bcz\n",client_count);
@@ -235,12 +216,7 @@ int main(int argc,char **argv){
 		struct client *clientinfo = (struct client *)malloc(sizeof(struct client));
 	char name[256];
 	 int bytes = recv(socketID, name, sizeof(name), 0);
-	  /*
-         //code added for password update(we are taking name twice bcz in first scan it is reading null.so we scanned     again.only in password update,in no password it is working normally so include this only if update is included.
-	 bzero(name,256);
-	 recv(socketID, name, sizeof(name), 0);
-	 //code added for password update ended here
-          */
+	 
 
 	clientinfo->socketID = socketID; clientinfo->index = client_count; strcpy(clientinfo->name, name);
 
