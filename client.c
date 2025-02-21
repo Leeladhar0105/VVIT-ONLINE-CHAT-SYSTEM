@@ -96,23 +96,7 @@ int main(int argc,char **argv){
 		close(sockfd);
 		exit(1);
 	}
-	/*
-	//code added for password update start
-		char pass[256];
-	printf("Enter password:");
-	scanf("%[^\n]%*c",pass);
-	send(sockfd,pass, sizeof(pass), 0);
-	//printf("password sent %s\n",pass);
-	bzero(pass,256);
-	recv(sockfd,pass,sizeof(pass),0);
-	//printf("msg received %s\n",pass);
-	if(strcmp(pass,"denied")==0){
-   printf("Access denied by server\n");
-	close(sockfd);
-	return 0; }
-
-       //code added for password update end
-       */
+	
 
 	printf("b.Connected to server successfully\n");//connected to group server
 
